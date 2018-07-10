@@ -1,9 +1,8 @@
 
 # Basic setup information
-url --url="http://mirror.centos.org/altarch/7/os/armhfp/"
 install
 keyboard us --xlayouts=us --vckeymap=us
-rootpw centos
+rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
 selinux --disabled
 firewall --enabled --port=22
