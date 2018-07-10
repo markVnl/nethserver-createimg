@@ -3,9 +3,14 @@ nethserver-createimg
 
 The aim of this package will be to supply a convenient way to create nethserver-arm images for the RaspberryPI. 
 
-This tool will be based on the appliance-tools implementation of centos AltArch
-
 Initial development of the KickStart files will be done in the ks_wip branch
+
+
+appliance-tools
+---------------
+
+
+This tool will be based on the appliance-tools implementation of centos AltArch
 
 https://github.com/CentOS/sig-core-AltArch/tree/master/appliance-tools
 
