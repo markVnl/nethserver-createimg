@@ -1,13 +1,13 @@
-
 # Basic setup information
 install
 keyboard us --xlayouts=us --vckeymap=us
 rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
 selinux --disabled
-firewall --enabled --port=22
-network --bootproto=dhcp --device=link --activate --onboot=on
-services --enabled=sshd,NetworkManager,chronyd,nethserver-system-init
+firewall --disabled
+#On a raspbery Pi we are pretty sure network defaults to eth0
+network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
+services --enabled=sshd,network,chronyd,nethserver-system-init
 shutdown
 lang en_US.UTF-8
 
@@ -21,6 +21,7 @@ repo --name="instneth-updates" --baseurl=http://mirror.framassa.org/nethserver7-
 repo --name="instneth-epel"    --baseurl=http://mirror.framassa.org/nethserver7-arm/7/ns-epel/armhfp/ --cost=100
 
 
+
 # Disk setup
 clearpart --initlabel --all
 part /boot --fstype=vfat --size=700  --label=boot   --asprimary --ondisk img
@@ -29,7 +30,7 @@ part /     --fstype=ext4 --size=2000 --label=rootfs --asprimary --ondisk img
 
 # Package setup
 %packages 
-@core
+@centos-minimal
 @nethserver-arm
 net-tools
 cloud-utils-growpart
@@ -37,7 +38,6 @@ chrony
 raspberrypi2-kernel
 raspberrypi2-firmware
 raspberrypi-vc-utils
-nano
 %end
 
 
@@ -47,28 +47,42 @@ nano
 %end
 
 
-%post 
+%post
 # Generating initrd
+echo "Generating initrd...."
 export kvr=$(rpm -q --queryformat '%{version}-%{release}' $(rpm -q raspberrypi2-kernel|tail -n 1))
 dracut --force /boot/initramfs-$kvr.armv7hl.img $kvr.armv7hl
 
 # Setting correct yum variable to use raspberrypi kernel repo
+echo "Setting up kernel variant..."
 echo "rpi2" > /etc/yum/vars/kvariant
 
 # Specific cmdline.txt files needed for raspberrypi2/3
+echo "Write cmdline.txt..."
 cat > /boot/cmdline.txt << EOF
 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p3 rootfstype=ext4 elevator=deadline rootwait
 EOF
 
+# cpu_governor.service
+echo "Applying cpu governor fix..."
+cat > /etc/systemd/system/multi-user.target.wants/cpu_governor.service << EOF
 
-#Nethserver-arm enable epel-placeholder
-ln -s /etc/yum.repos.d/NethServer.ns-epel /etc/yum.repos.d/epel.repo
+# FIXME centos raspberrypi2-kernel defaults to powersave governor,
+# moreover the kernel-tools package is absent is the pi2-kernel repository.
 
-#Nethserver-arm enable init on first boot
-touch /var/spool/first-boot
+[Unit]
+Description=Set cpu governor to ondemand
 
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c " for i in {0..3}; do echo ondemand > /sys/devices/system/cpu/cpu\$i/cpufreq/scaling_governor; done"
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # Mandatory README file
+echo "Write README file..."
 cat >/root/README << EOF
 == CentOS 7 userland ==
 
@@ -76,6 +90,16 @@ If you want to automatically resize your / partition, just type the following (a
 rootfs-expand
 
 EOF
+
+
+#Nethserver-arm enable epel-placeholder
+echo "Enabling epel-placeholder..."
+ln -s /etc/yum.repos.d/NethServer.ns-epel /etc/yum.repos.d/epel.repo
+
+#Nethserver-arm enable init on first boot
+echo "Enabling first-boot..."
+touch /var/spool/first-boot
+
 
 # RaspberryPi 3 config for wifi
 cat > /usr/lib/firmware/brcm/brcmfmac43430-sdio.txt << EOF
