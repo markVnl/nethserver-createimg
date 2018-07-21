@@ -63,6 +63,11 @@ cat > /boot/cmdline.txt << EOF
 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p3 rootfstype=ext4 elevator=deadline rootwait
 EOF
 
+# On a PI we are pretty sure wireless network interface defaults to wlan0
+# Configure wpa_supplicant to control wlan0 
+echo "Configuring wpa_supplicant..."
+sed -i 's/INTERFACES=""/INTERFACES="-iwlan0"/' /etc/sysconfig/wpa_supplicant
+
 # cpu_governor.service
 echo "Applying cpu governor fix..."
 cat > /etc/systemd/system/multi-user.target.wants/cpu_governor.service << EOF

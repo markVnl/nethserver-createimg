@@ -30,7 +30,12 @@ part /     --fstype=ext4 --size=2000 --label=rootfs --asprimary --ondisk img
 
 # Package setup
 %packages 
-@centos-minimal
+@core
+-NetworkManager
+-NetworkManager-team
+-NetworkManager-tui
+-NetworkManager-libnm
+wpa_supplicant
 @nethserver-arm
 net-tools
 cloud-utils-growpart
@@ -62,6 +67,11 @@ echo "Write cmdline.txt..."
 cat > /boot/cmdline.txt << EOF
 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p3 rootfstype=ext4 elevator=deadline rootwait
 EOF
+
+# On a PI we are pretty sure wireless network interface defaults to wlan0
+# Configure wpa_supplicant to control wlan0 
+echo "Configuring wpa_supplicant..."
+sed -i 's/INTERFACES=""/INTERFACES="-iwlan0"/' /etc/sysconfig/wpa_supplicant
 
 # cpu_governor.service
 echo "Applying cpu governor fix..."
