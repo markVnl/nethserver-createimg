@@ -86,6 +86,10 @@ ExecStart=/bin/sh -c " for i in {0..3}; do echo ondemand > /sys/devices/system/c
 WantedBy=multi-user.target
 EOF
 
+# workaround for template expansion with "hard coded" /usr/lib64
+echo "creating simlink /usr/lib64 > /usr/lib ..."
+ln -s /usr/lib  /usr/lib64
+
 # Mandatory README file
 echo "Write README file..."
 cat >/root/README << EOF
