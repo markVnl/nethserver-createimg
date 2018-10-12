@@ -8,7 +8,7 @@ selinux --disabled
 firewall --disabled
 #On a raspbery Pi we are pretty sure network defaults to eth0
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,network,chronyd,nethserver-system-init
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init
 shutdown
 lang en_US.UTF-8
 
@@ -24,12 +24,11 @@ repo --name="epel"               --baseurl=https://nethserver.globalcortex.net/m
 
 # Disk setup
 clearpart --initlabel --all
-part /boot --fstype=vfat --size=700  --label=boot   --asprimary --ondisk img
-part swap  --fstype=swap --size=512  --label=swap   --asprimary --ondisk img
-part /     --fstype=ext4 --size=2000 --label=rootfs --asprimary --ondisk img
+part /boot --fstype=vfat --size=768  --label=boot   --asprimary --ondisk img
+part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
-%packages 
+%packages
 @centos-minimal
 @nethserver-arm
 net-tools
@@ -38,6 +37,7 @@ chrony
 raspberrypi2-kernel
 raspberrypi2-firmware
 raspberrypi-vc-utils
+zram
 %end
 
 
@@ -60,7 +60,7 @@ echo "rpi2" > /etc/yum/vars/kvariant
 # Specific cmdline.txt files needed for raspberrypi2/3
 echo "Write cmdline.txt..."
 cat > /boot/cmdline.txt << EOF
-console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p3 rootfstype=ext4 elevator=deadline rootwait
+console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 EOF
 
 # On a PI we are pretty sure wireless network interface defaults to wlan0

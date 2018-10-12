@@ -8,7 +8,7 @@ selinux --disabled
 firewall --disabled
 #On armhfp we are pretty sure network defaults to eth0
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,network,chronyd,nethserver-system-init
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init
 shutdown
 bootloader --location=mbr
 lang en_US.UTF-8
@@ -25,9 +25,8 @@ repo --name="epel"               --baseurl=https://nethserver.globalcortex.net/m
 
 # Disk setup
 clearpart --initlabel --all
-part /boot --fstype=ext4 --size=700  --label=boot   --asprimary --ondisk img
-part swap  --fstype=swap --size=512  --label=swap   --asprimary --ondisk img
-part /     --fstype=ext4 --size=2000 --label=rootfs --asprimary --ondisk img
+part /boot --fstype=ext4 --size=768  --label=boot   --asprimary --ondisk img
+part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
 %packages
@@ -40,6 +39,7 @@ kernel
 dracut-config-generic
 -dracut-config-rescue
 extlinux-bootloader
+zram
 %end
 
 
@@ -55,14 +55,15 @@ extlinux-bootloader
 echo "Setting up kernel variant..."
 echo "generic" > /etc/yum/vars/kvariant
 
-
 # On armhfp we are pretty sure wireless network interface defaults to wlan0
 # Configure wpa_supplicant to control wlan0 
 echo "Configuring wpa_supplicant..."
 sed -i 's/INTERFACES=""/INTERFACES="-iwlan0"/' /etc/sysconfig/wpa_supplicant
+
 # workaround for template expansion with "hard coded" /usr/lib64
 echo "creating simlink /usr/lib64 > /usr/lib ..."
 ln -s /usr/lib  /usr/lib64
+
 # Mandatory README file
 echo "Write README file..."
 cat >/root/README << EOF
@@ -73,7 +74,6 @@ rootfs-expand
 
 EOF
 
-
 #Nethserver-arm enable epel-placeholder
 echo "Enabling epel-placeholder..."
 ln -s /etc/yum.repos.d/NethServer.ns-epel /etc/yum.repos.d/epel.repo
@@ -82,7 +82,7 @@ ln -s /etc/yum.repos.d/NethServer.ns-epel /etc/yum.repos.d/epel.repo
 echo "Enabling first-boot..."
 touch /var/spool/first-boot
 
-
+# Wireless tweaks
 
 # For cubietruck WiFi : kernel module works and linux-firmware has the needed file
 # But it just needs a .txt config file 
