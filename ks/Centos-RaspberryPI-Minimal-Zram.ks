@@ -8,9 +8,9 @@ timezone --isUtc --nontp UTC
 selinux --disabled
 firewall --enabled --port=22
 network --bootproto=dhcp --device=link --activate --onboot=on
-services --enabled=sshd,NetworkManager,chronyd
+services --enabled=sshd,NetworkManager,chronyd,zram-swap
 shutdown
-#bootloader --location=mbr
+bootloader --location=mbr
 lang en_US.UTF-8
 
 # Repositories to use
@@ -18,25 +18,27 @@ repo --name="instCentOS"  --baseurl=http://mirror.centos.org/altarch/7/os/armhfp
 repo --name="instUpdates" --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
 repo --name="instExtras"  --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/ --cost=100
 repo --name="instKern"    --baseurl=http://mirror.centos.org/altarch/7/kernel/armhfp/kernel-rpi2/ --cost=100
+# Repository for zram
+repo --name="instZram" --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/zram-swap/epel-7-x86_64/ --cost=100
+
 
 # Disk setup
 clearpart --initlabel --all
-part /boot  --fstype=vfat   --size=700  --label=boot --asprimary --ondisk img
-part swap --fstype=swap --size=512 --label=swap --asprimary --ondisk img
-part / --fstype=ext4 --size=1500 --label=rootfs --asprimary --ondisk img
+part /boot  --fstype=vfat --size=768  --label=boot   --asprimary --ondisk=img
+part /      --fstype=ext4 --size=2048 --label=rootfs --asprimary --ondisk=img
 
 # Package setup
-%packages 
+%packages
 @core
 net-tools
 cloud-utils-growpart
 chrony
-#uboot-images-armv7
+uboot-images-armv7
 raspberrypi2-kernel
 #raspberrypi2-kernel-firmware
 raspberrypi2-firmware
 raspberrypi-vc-utils
-nano
+zram
 %end
 
 
@@ -67,7 +69,7 @@ systemctl enable chronyd
 
 # Specific cmdline.txt files needed for raspberrypi2/3
 cat > /boot/cmdline.txt << EOF
-console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p3 rootfstype=ext4 elevator=deadline rootwait
+console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 EOF
 
 # Setting correct yum variable to use raspberrypi kernel repo
@@ -241,6 +243,9 @@ fdsslevel_ch11=6
 
 EOF
 
+
+# Remove ifcfg-link on pre generated images
+rm -f /etc/sysconfig/network-scripts/ifcfg-link
 
 # Remove machine-id on pre generated images
 rm -f /etc/machine-id
