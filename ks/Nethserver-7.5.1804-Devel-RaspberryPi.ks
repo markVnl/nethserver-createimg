@@ -35,6 +35,7 @@ net-tools
 cloud-utils-growpart
 chrony
 raspberrypi2-kernel
+#raspberrypi2-kernel-firmware
 raspberrypi2-firmware
 raspberrypi-vc-utils
 zram
@@ -281,5 +282,9 @@ EOF
 # Remove machine-id on pre generated images
 rm -f /etc/machine-id
 touch /etc/machine-id
+
+# Cleanup yum cache
+yum clean all
+rm -rf /var/cache/yum
 
 %end

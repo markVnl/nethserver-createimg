@@ -36,9 +36,11 @@ net-tools
 cloud-utils-growpart
 chrony
 kernel
+-kernel-headers
 dracut-config-generic
 -dracut-config-rescue
 extlinux-bootloader
+uboot-images-armv7
 zram
 %end
 
@@ -154,5 +156,9 @@ rm -f /etc/sysconfig/network-scripts/ifcfg-link
 # Remove machine-id on pre generated images
 rm -f /etc/machine-id
 touch /etc/machine-id
+
+# Cleanup yum cache
+yum clean all
+rm -rf /var/cache/yum
 
 %end
