@@ -58,6 +58,10 @@ dracut --force /boot/initramfs-$kvr.armv7hl.img $kvr.armv7hl
 echo "Setting up kernel variant..."
 echo "rpi2" > /etc/yum/vars/kvariant
 
+# Disable / Mask kdump.service
+echo "Masking kdump.service..."
+systemctl mask kdump.service
+
 # Specific cmdline.txt files needed for raspberrypi2/3
 echo "Write cmdline.txt..."
 cat > /boot/cmdline.txt << EOF

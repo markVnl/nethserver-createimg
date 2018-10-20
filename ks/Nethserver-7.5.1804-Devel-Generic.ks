@@ -57,6 +57,11 @@ zram
 echo "Setting up kernel variant..."
 echo "generic" > /etc/yum/vars/kvariant
 
+# Disable / Mask kdump.service
+echo "Masking kdump.service..."
+systemctl mask kdump.service
+
+
 # On armhfp we are pretty sure wireless network interface defaults to wlan0
 # Configure wpa_supplicant to control wlan0 
 echo "Configuring wpa_supplicant..."
