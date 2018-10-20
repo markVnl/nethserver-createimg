@@ -25,7 +25,7 @@ repo --name="instZram" --baseurl=https://copr-be.cloud.fedoraproject.org/results
 # Disk setup
 clearpart --initlabel --all
 part /boot  --fstype=vfat --size=768  --label=boot   --asprimary --ondisk=img
-part /      --fstype=ext4 --size=2048 --label=rootfs --asprimary --ondisk=img
+part /      --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk=img
 
 # Package setup
 %packages
