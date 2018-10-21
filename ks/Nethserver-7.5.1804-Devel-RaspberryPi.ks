@@ -17,9 +17,9 @@ repo --name="base"          --baseurl=http://mirror.centos.org/altarch/7/os/armh
 repo --name="updates"       --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
 repo --name="extras"        --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/  --cost=100
 repo --name="centos-kernel" --baseurl=http://mirror.centos.org/altarch/7/kernel/armhfp/kernel-rpi2/  --cost=100
-repo --name="nethserver-base"    --baseurl=https://nethserver.globalcortex.net/mirror/nethserver-arm/7.5.1804/base/armhfp/    --cost=100
-repo --name="nethserver-updates" --baseurl=https://nethserver.globalcortex.net/mirror/nethserver-arm/7.5.1804/updates/armhfp/ --cost=100
-repo --name="epel"               --baseurl=https://nethserver.globalcortex.net/mirror/nethserver-arm/7.5.1804/ns-epel/armhfp/ --cost=100
+repo --name="nethserver-base"    --baseurl=https://mrmarkuz.goip.de/mirror/nethserver-arm/7.5.1804/base/armhfp/    --cost=100
+repo --name="nethserver-updates" --baseurl=https://mrmarkuz.goip.de/mirror/nethserver-arm/7.5.1804/updates/armhfp/ --cost=100
+repo --name="epel"               --baseurl=https://mrmarkuz.goip.de/mirror/nethserver-arm/7.5.1804/ns-epel/armhfp/ --cost=100
 
 
 # Disk setup
