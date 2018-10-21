@@ -38,7 +38,7 @@ dracut-config-generic
 -dracut-config-rescue
 extlinux-bootloader
 uboot-images-armv7
-Zram
+zram
 %end
 
 
