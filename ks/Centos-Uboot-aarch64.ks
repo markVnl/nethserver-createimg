@@ -42,9 +42,9 @@ zram
 
 # Disk setup
 clearpart --initlabel --all 
-part /boot/efi --fstype=vfat  --size=256  --label=kernel  --asprimary --ondisk img --fsoptions="defaults,uid=0,gid=0,umask=0077,shortname=winnt"
-part /boot     --fstype=ext4  --size=768  --label=kernel  --asprimary --ondisk img
-part /         --fstype=ext4  --size=2560 --label=rootfs  --asprimary --ondisk img
+part /boot/efi --fstype=vfat --size=256  --label=boot   --asprimary --ondisk img
+part /boot     --fstype=ext4 --size=768  --label=kernel --asprimary --ondisk img
+part /         --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 %pre
 #End of Pre script for partitions
@@ -53,14 +53,19 @@ part /         --fstype=ext4  --size=2560 --label=rootfs  --asprimary --ondisk i
 
 %post
 
-## FIXME workaronds for aarch64 {uboot,efi}-boot
+## FIXME workarounds for aarch64 {uboot,efi}-boot
 
 #
 # (re)configure GRUB2, does not work yet
 #
 # NOTE: ran manualy in chroot: /usr/sbin/grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
 #
+cat > /etc/default/grub << EOF
+GRUB_TIMEOUT=1
+GRUB_TERMINAL_OUTPUT="console"
+GRUB_CMDLINE_LINUX=""
 
+EOF
 
 # fix u-boot's fedoraisms
 # Centos uboot-images-armv8 carry Fedora patch..
@@ -79,7 +84,7 @@ popd
 cat >> /etc/yum.conf << EOF
 
 #
-## Workarond for aarch64 {uboot,efi}-boot
+## Workaround for aarch64 {uboot,efi}-boot
 #
 exclude=kernel*
 
@@ -90,6 +95,8 @@ cp -P /usr/share/uboot/rpi_3/u-boot.bin /boot/efi/rpi3-u-boot.bin
 
 ## FIXME end
 
+# Enable heartbeat LED
+echo "ledtrig-heartbeat" > /etc/modules-load.d/sbc.conf
 
 # Disable / Mask kdump.service
 echo "Masking kdump.service..."
