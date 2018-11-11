@@ -20,6 +20,8 @@ Patch4: 0001-Remove-usage-of-kickstart.get_modules-rhbz-1544075.patch
 
 Patch9999: 9999-revert-bca4b0df03b2831c31ace011fdcf3c6e73c9df66.patch
 
+Patch99999: 99999-start-first-partion-at-4096-Nethserver.patch
+
 # Ensure system deps are installed (rhbz#1409536)
 Requires: python-imgcreate
 Requires: python-urlgrabber
