@@ -5,7 +5,7 @@
 Summary: Tools for building live CDs
 Name: livecd-tools
 Version: 21.4
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 License: GPLv2
 Group: System Environment/Base
@@ -16,6 +16,9 @@ URL: http://git.fedorahosted.org/git/livecd
 # make dist
 # scp livecd*.tar.bz2 fedorahosted.org:livecd
 Source0: http://fedorahosted.org/releases/l/i/livecd/%{name}-%{version}.tar.bz2
+
+Patch9999: 9999-Add-basic-aarch64-support-Nethserver.patch
+
 # Drop the requirements for grub2-efi and shim: breaks 32-bit compose
 # and not needed as we have them in comps
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -72,7 +75,7 @@ like live image or appliances.
 
 
 %prep
-%setup -q
+%autosetup -p1
 
 %build
 make

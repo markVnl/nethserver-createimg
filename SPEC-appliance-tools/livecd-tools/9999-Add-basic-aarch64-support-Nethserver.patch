@@ -1,0 +1,13 @@
+diff --git a/imgcreate/live.py b/imgcreate/live.py
+index 260fc61..2a5bd96 100755
+--- a/imgcreate/live.py
++++ b/imgcreate/live.py
+@@ -1033,7 +1033,7 @@ elif arch in ("ppc",):
+     LiveImageCreator = ppcLiveImageCreator
+ elif arch in ("ppc64",):
+     LiveImageCreator = ppc64LiveImageCreator
+-elif arch.startswith('arm'):
++elif arch.startswith(("arm", "aarch64")):
+     LiveImageCreator = LiveImageCreatorBase
+ 
+ else:
