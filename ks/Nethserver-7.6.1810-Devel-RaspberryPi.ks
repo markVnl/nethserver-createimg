@@ -33,46 +33,8 @@ part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
 %packages
-@core
--NetworkManager
--NetworkManager-team
--NetworkManager-tui
--NetworkManager-libnm
-wpa_supplicant
-
-nethserver-httpd-admin
-nethserver-ntp
-nethserver-hosts
-nethserver-openssh
-nethserver-release
-nethserver-phonehome
-nethserver-duc
-nethserver-firewall-base
-nethserver-dnsmasq
-nethserver-httpd
-nethserver-sssd
-nethserver-letsencrypt
-nethserver-mail-smarthost
-nethserver-diagtools
-nethserver-backup-config
-lsof
-patch
-rsync
-strace
-tcpdump
-usbutils
-screen
-wget
-bind-utils
-tmpwatch
-traceroute
-deltarpm
-nano
-which
-man
-bash-completion-extras
-file
-
+@centos-minimal
+@nethserver-iso
 nethserver-arm-epel
 net-tools
 cloud-utils-growpart
@@ -329,5 +291,46 @@ touch /etc/machine-id
 # Cleanup yum cache
 yum clean all
 rm -rf /var/cache/yum
+
+#
+# FIXME
+#
+# Temporary patch import-repokeys and release for armhfp
+#
+echo "Writing temporary  patch for armhfp..."
+cat > /root/import-repokeys_and_release.patch << EOF
+--- /etc/e-smith/events/actions/nethserver-base-import-repokeys.org
++++ /etc/e-smith/events/actions/nethserver-base-import-repokeys
+@@ -22,6 +22,9 @@
+
+ major_version=7
+ basearch="\$(uname -m)"
++if [[ \${basearch} = armv7* ]]; then
++    basearch="armhfp"
++fi
+ base_persistdir="/var/lib/yum/repos/\${basearch}/\${major_version}"
+
+ gpg_tmpdir=\$(mktemp -d)
+
+--- /etc/e-smith/db/configuration/force/sysconfig/Release.org
++++ /etc/e-smith/db/configuration/force/sysconfig/Release
+@@ -1 +1 @@
+-final
++devel
+
+--- /etc/nethserver-release.org
++++ /etc/nethserver-release
+@@ -1 +1 @@
+-NethServer release 7.6.1810 (final)
++NethServer release 7.6.1810 (devel)
+
+EOF
+
+echo "Applying temporary patch for armhfp..."
+patch -p0 < /root/import-repokeys_and_release.patch
+
+#
+#END FIXME
+#
 
 %end
