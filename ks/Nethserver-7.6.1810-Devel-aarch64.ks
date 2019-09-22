@@ -1,42 +1,44 @@
 # Basic setup information
-url --url="http://mirror.centos.org/altarch/7/os/aarch64/"
 install
 keyboard us --xlayouts=us --vckeymap=us
-lang en_US.UTF-8
-rootpw centos
+rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
-selinux --enforcing
-firewall --enabled --port=22
-network --bootproto=dhcp --device=link --activate --onboot=on
-services --enabled=sshd,NetworkManager,chronyd,zram-swap
+selinux --disabled
+firewall --disabled
+#On a raspbery Pi we are pretty sure network defaults to eth0
+network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init
+lang en_US.UTF-8
 skipx
 shutdown
-bootloader --location=mbr
 
 # Repositories to use
 repo --name="base"    --baseurl=http://mirror.centos.org/altarch/7/os/aarch64/      --cost=100
 repo --name="updates" --baseurl=http://mirror.centos.org/altarch/7/updates/aarch64/ --cost=100
 repo --name="extras"  --baseurl=http://mirror.centos.org/altarch/7/extras/aarch64/  --cost=100
+repo --name="epel"    --baseurl=http://mirror.1000mbps.com/epel/7/aarch64/          --cost=100
+repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7/base/aarch64/    --cost=100
+repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7/updates/aarch64/ --cost=100
 # this repo includes the kernel
 repo --name="ns-devel" --baseurl=https://mrmarkuz.goip.de/mirror/nethserver-arm/7.6.1810/devel-tools/aarch64/ --cost=100
 
 # Package setup
 %packages
-@core
-bcm283x-firmware
-chrony
-cloud-utils-growpart
-dracut-config-generic
-grub2-efi
-grubby
-kernel
-nano
+@centos-minimal
+@nethserver-iso
+epel-release
 net-tools
-shim
-uboot-images-armv8
-wget
-zram
+cloud-utils-growpart
+chrony
+kernel
+grubby
+dracut-config-generic
 -dracut-config-rescue
+grub2-efi
+shim
+zram
+uboot-images-armv8
+bcm283x-firmware
 
 %end
 
@@ -101,6 +103,11 @@ echo "ledtrig-heartbeat" > /etc/modules-load.d/sbc.conf
 # Disable / Mask kdump.service
 echo "Masking kdump.service..."
 systemctl mask kdump.service
+
+#Nethserver-arm enable init on first boot
+echo "Enabling first-boot..."
+touch /var/spool/first-boot
+
 
 # RaspberryPi 3 config for wifi
 cat > /usr/lib/firmware/brcm/brcmfmac43430-sdio.txt << EOF
@@ -279,5 +286,34 @@ touch /etc/machine-id
 
 # Cleanup yum cache
 yum clean all
+
+
+#
+# FIXME
+#
+# Temporary patch reease for aarch64
+#
+echo "Writing temporary  patch for aarch64..."
+cat > /root/release.patch << EOF
+--- /etc/e-smith/db/configuration/force/sysconfig/Release.org
++++ /etc/e-smith/db/configuration/force/sysconfig/Release
+@@ -1 +1 @@
+-final
++devel
+
+--- /etc/nethserver-release.org
++++ /etc/nethserver-release
+@@ -1 +1 @@
+-NethServer release 7.6.1810 (final)
++NethServer release 7.6.1810 (devel)
+
+EOF
+
+echo "Applying temporary patch for aarch4..."
+patch -p0 < /root/release.patch
+
+#
+#END FIXME
+#
 
 %end
