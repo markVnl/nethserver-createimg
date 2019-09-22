@@ -13,12 +13,13 @@ shutdown
 bootloader --location=mbr
 
 # Repositories to use
-repo --name="base"    --baseurl=http://mirror.centos.org/altarch/7/os/armhfp/      --cost=100
-repo --name="updates" --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
-repo --name="extras"  --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/  --cost=100
-repo --name="kernel"  --baseurl=https://armv7.dev.centos.org/repodir/community-kernel-latest/ --cost=100
-# Repository for zram
-repo --name="zram" --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/zram-swap/epel-7-x86_64/ --cost=100
+repo --name="base"     --baseurl=http://mirror.centos.org/altarch/7/os/armhfp/      --cost=100
+repo --name="updates"  --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
+repo --name="extras"   --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/  --cost=100
+repo --name="kernel"   --baseurl=https://armv7.dev.centos.org/repodir/community-kernel-latest/ --cost=100
+# Copr repo for epel-7-aarch64_SBC-tools owned by markvnl for zram.
+# zram is a noarch package living in an aarch64-repo (copr does not have an armhfp build target)
+repo --name="sbc-tools" --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/epel-7-aarch64_SBC-tools/epel-7-aarch64/ --cost=100
 
 # Package setup
 %packages
@@ -55,7 +56,7 @@ echo "generic" > /etc/yum/vars/kvariant
 echo "Masking kdump.service..."
 systemctl mask kdump.service
 
-# Add community-kernel-latest repository
+# Add (default disabled) community-kernel-latest repository
 echo "Adding community-kernel-latest repository..."
 cat >> /etc/yum.repos.d/CentOS-armhfp-kernel.repo << EOF
 
@@ -70,7 +71,7 @@ EOF
 # Mandatory README file
 echo "Write README file..."
 cat >/root/README << EOF
-== CentOS 7 userland ==
+== Homeland el7 ==
 
 If you want to automatically resize your / partition, just type the following (as root user):
 rootfs-expand
