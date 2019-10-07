@@ -1,0 +1,6 @@
+[submodule "SPEC-appliance-tools"]
+	path = SPEC-appliance-tools
+	url = git@github.com:markVnl/SPEC-appliance-tools.git
+[submodule "SPEC-livecd-tools"]
+	path = SPEC-livecd-tools
+	url = git@github.com:markVnl/SPEC-livecd-tools.git
