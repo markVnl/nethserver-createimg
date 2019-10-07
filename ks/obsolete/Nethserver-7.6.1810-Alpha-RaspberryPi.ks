@@ -1,39 +1,44 @@
 
 # Basic setup information
-url --url="http://mirror.centos.org/altarch/7/os/armhfp/"
 install
 keyboard us --xlayouts=us --vckeymap=us
-rootpw centos
+rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
 selinux --disabled
-firewall --enabled --port=22
-network --bootproto=dhcp --device=link --activate --onboot=on
-services --enabled=sshd,NetworkManager,chronyd,zram-swap
+firewall --disabled
+#On a raspbery Pi we are pretty sure network defaults to eth0
+network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init
 shutdown
-bootloader --location=mbr
 lang en_US.UTF-8
 
 # Repositories to use
-repo --name="instCentOS"  --baseurl=http://mirror.centos.org/altarch/7/os/armhfp/ --cost=100
-repo --name="instUpdates" --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
-repo --name="instExtras"  --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/ --cost=100
-repo --name="instKern"    --baseurl=http://mirror.centos.org/altarch/7/kernel/armhfp/kernel-rpi2/ --cost=100
-# Repository for zram
-repo --name="instZram" --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/zram-swap/epel-7-x86_64/ --cost=100
+repo --name="base"          --baseurl=http://mirror.centos.org/altarch/7/os/armhfp/      --cost=100
+repo --name="updates"       --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
+repo --name="extras"        --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/  --cost=100
+repo --name="centos-kernel" --baseurl=http://mirror.centos.org/altarch/7/kernel/armhfp/kernel-rpi2/    --cost=100
+repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7/base/armhfp/    --cost=100
+repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7/updates/armhfp/ --cost=100
+# epel-pass1
+repo --name="epel"               --baseurl=https://armv7.dev.centos.org/repodir/epel-pass-1/ --cost=100
+# workaroubd for zram
+repo --name="nethserver-arm-base" --baseurl=http://packages.nethserver.org/nethserver/7/arm-base/armhfp/ --cost=100
+
 
 
 # Disk setup
 clearpart --initlabel --all
-part /boot  --fstype=vfat --size=768  --label=boot   --asprimary --ondisk=img
-part /      --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk=img
+part /boot --fstype=vfat --size=768  --label=boot   --asprimary --ondisk img
+part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
 %packages
-@core
+@centos-minimal
+@nethserver-iso
+nethserver-arm-epel
 net-tools
 cloud-utils-growpart
 chrony
-uboot-images-armv7
 raspberrypi2-kernel
 #raspberrypi2-kernel-firmware
 raspberrypi2-firmware
@@ -48,13 +53,55 @@ zram
 %end
 
 
-%post 
+%post
 # Generating initrd
+echo "Generating initrd...."
 export kvr=$(rpm -q --queryformat '%{version}-%{release}' $(rpm -q raspberrypi2-kernel|tail -n 1))
 dracut --force /boot/initramfs-$kvr.armv7hl.img $kvr.armv7hl
 
+# Setting correct yum variable to use raspberrypi kernel repo
+echo "Setting up kernel variant..."
+echo "rpi2" > /etc/yum/vars/kvariant
+
+# Disable / Mask kdump.service
+echo "Masking kdump.service..."
+systemctl mask kdump.service
+
+# Specific cmdline.txt files needed for raspberrypi2/3
+echo "Write cmdline.txt..."
+cat > /boot/cmdline.txt << EOF
+console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
+EOF
+
+# On a PI we are pretty sure wireless network interface defaults to wlan0
+# Configure wpa_supplicant to control wlan0 
+echo "Configuring wpa_supplicant..."
+sed -i 's/INTERFACES=""/INTERFACES="-iwlan0"/' /etc/sysconfig/wpa_supplicant
+
+# cpu_governor.service
+echo "Applying cpu governor fix..."
+cat > /etc/systemd/system/multi-user.target.wants/cpu_governor.service << EOF
+
+# FIXME centos raspberrypi2-kernel defaults to powersave governor,
+# moreover the kernel-tools package is absent is the pi2-kernel repository.
+
+[Unit]
+Description=Set cpu governor to ondemand
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c " for i in {0..3}; do echo ondemand > /sys/devices/system/cpu/cpu\$i/cpufreq/scaling_governor; done"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# workaround for template expansion with "hard coded" /usr/lib64
+echo "creating simlink /usr/lib64 > /usr/lib ..."
+ln -s /usr/lib  /usr/lib64
 
 # Mandatory README file
+echo "Write README file..."
 cat >/root/README << EOF
 == CentOS 7 userland ==
 
@@ -63,17 +110,10 @@ rootfs-expand
 
 EOF
 
-# Enabling chronyd on boot
-systemctl enable chronyd
 
-
-# Specific cmdline.txt files needed for raspberrypi2/3
-cat > /boot/cmdline.txt << EOF
-console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
-EOF
-
-# Setting correct yum variable to use raspberrypi kernel repo
-echo "rpi2" > /etc/yum/vars/kvariant
+#Nethserver-arm enable init on first boot
+echo "Enabling first-boot..."
+touch /var/spool/first-boot
 
 
 # RaspberryPi 3 config for wifi
@@ -244,11 +284,39 @@ fdsslevel_ch11=6
 EOF
 
 
-# Remove ifcfg-link on pre generated images
-rm -f /etc/sysconfig/network-scripts/ifcfg-link
-
 # Remove machine-id on pre generated images
 rm -f /etc/machine-id
 touch /etc/machine-id
+
+# Cleanup yum cache
+yum clean all
+rm -rf /var/cache/yum
+
+#
+# FIXME
+# Temporary patch release for armhfp
+#
+echo "Writing temporary  patch for armhfp..."
+cat > /root/release.patch << EOF
+--- /etc/e-smith/db/configuration/force/sysconfig/Release.org
++++ /etc/e-smith/db/configuration/force/sysconfig/Release
+@@ -1 +1 @@
+-final
++alpha
+
+--- /etc/nethserver-release.org
++++ /etc/nethserver-release
+@@ -1 +1 @@
+-NethServer release 7.6.1810 (final)
++NethServer release 7.6.1810 (alpha)
+
+EOF
+
+echo "Applying temporary patch for armhfp..."
+patch -p0 < /root/release.patch
+
+#
+#END FIXME
+#
 
 %end
