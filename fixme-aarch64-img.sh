@@ -8,15 +8,6 @@ fi
 
 img=$(echo $ks|rev|cut -f 1 -d "/"|rev|sed s/\.ks//g)
 
-time appliance-creator --config=${ks} --name="$img" --version="7" --debug --no-compress
-
-if [[ $? -ne 0 ]]; then
-   exit $?
-fi
-
-chown -R $(logname). $img
-
-
 #
 # FIXME
 #
