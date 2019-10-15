@@ -94,9 +94,6 @@ ExecStart=/bin/sh -c " for i in {0..3}; do echo ondemand > /sys/devices/system/c
 WantedBy=multi-user.target
 EOF
 
-systemctl enable cpu_governor.service
-
-
 # Mandatory README file
 echo "Write README file..."
 cat >/root/README << EOF
