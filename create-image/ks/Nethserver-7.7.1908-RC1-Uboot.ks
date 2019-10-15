@@ -33,16 +33,18 @@ part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 @centos-minimal
 @nethserver-iso
 nethserver-arm-epel
-net-tools
-cloud-utils-growpart
 chrony
-kernel
--kernel-headers
+cloud-utils-growpart
+dracut-config-extradrivers
 dracut-config-generic
--dracut-config-rescue
 extlinux-bootloader
+grubby
+kernel
+net-tools
 uboot-images-armv7
 zram
+-dracut-config-rescue
+-kernel-headers
 %end
 
 
