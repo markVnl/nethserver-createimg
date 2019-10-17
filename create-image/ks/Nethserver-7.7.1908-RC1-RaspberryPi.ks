@@ -22,7 +22,6 @@ repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethse
 # epel-pass1
 repo --name="epel"               --baseurl=https://armv7.dev.centos.org/repodir/epel-pass-1/ --cost=100
 
-
 # Disk setup
 clearpart --initlabel --all
 part /boot --fstype=vfat --size=768  --label=boot   --asprimary --ondisk img
@@ -32,6 +31,7 @@ part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 %packages
 @centos-minimal
 @nethserver-iso
+NetworkManager
 nethserver-arm-epel
 net-tools
 cloud-utils-growpart
@@ -108,6 +108,12 @@ EOF
 #Nethserver-arm enable init on first boot
 echo "Enabling first-boot..."
 touch /var/spool/first-boot
+
+
+#
+# FIXME: why do we need to install the nethserver gpg-key manualy here?
+#
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-NethServer-7
 
 
 echo "Setting up Raspbery PI 3(+)/4 wlan firmware..."
