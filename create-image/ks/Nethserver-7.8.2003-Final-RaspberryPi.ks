@@ -79,17 +79,14 @@ USERCTL=no
 EOF
 
 # Start the network.service after eth0 is ready 
-cat > /etc/systemd/system/network.service.d/override.conf << EOF
-[Service]
-KillMode=control-group
-
+cat > /etc/systemd/system/network.service.d/wait-for-eth0.conf << EOF
 [Unit]
 After=sys-subsystem-net-devices-eth0.device
 Requires=sys-subsystem-net-devices-eth0.device
 EOF
 
 # Also wait for eth0 @nethserver-system-init.service
-cat > /etc/systemd/system/nethserver-system-init.service.d/override.conf << EOF
+cat > /etc/systemd/system/nethserver-system-init.service.d/wait-for-eth0.conf << EOF
 [Unit]
 After=sys-subsystem-net-devices-eth0.device
 Requires=sys-subsystem-net-devices-eth0.device
