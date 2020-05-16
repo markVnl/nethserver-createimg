@@ -7,7 +7,7 @@ selinux --disabled
 firewall --disabled
 #On armhfp we are pretty sure network defaults to eth0
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,NetworkManager,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager-wait-online
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager-wait-online
 shutdown
 bootloader --location=mbr
 lang en_US.UTF-8
@@ -32,6 +32,7 @@ part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 %packages
 @centos-minimal
 @nethserver-iso
+nethserver-arm-extra-config
 nethserver-arm-epel
 chrony
 cloud-utils-growpart
