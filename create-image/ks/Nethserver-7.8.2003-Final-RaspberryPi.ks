@@ -8,7 +8,7 @@ selinux --disabled
 firewall --disabled
 #On a raspbery Pi we are pretty sure network defaults to eth0
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager-wait-online
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager,NetworkManager-wait-online
 shutdown
 lang en_US.UTF-8
 
@@ -31,6 +31,7 @@ part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 %packages
 @centos-minimal
 @nethserver-iso
+nethserver-arm-extra-config
 nethserver-arm-epel
 net-tools
 cloud-utils-growpart
@@ -69,24 +70,16 @@ EOF
 echo "Fixing network quirks for Raspberry PI 4..."
 cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
 DEVICE=eth0
-BOOTPROTO=dhcp
-NM_CONTROLLED=no
-ONBOOT=yes
-PEERDNS=no
-PERSISTENT_DHCLIENT=y
 TYPE=Ethernet
-USERCTL=no
+BOOTPROTO=dhcp
+PERSISTENT_DHCLIENT=y
+ONBOOT=yes
+NM_CONTROLLED=no
 EOF
 
 # Start the network.service after eth0 is ready 
+mkdir /etc/systemd/system/network.service.d/
 cat > /etc/systemd/system/network.service.d/wait-for-eth0.conf << EOF
-[Unit]
-After=sys-subsystem-net-devices-eth0.device
-Requires=sys-subsystem-net-devices-eth0.device
-EOF
-
-# Also wait for eth0 @nethserver-system-init.service
-cat > /etc/systemd/system/nethserver-system-init.service.d/wait-for-eth0.conf << EOF
 [Unit]
 After=sys-subsystem-net-devices-eth0.device
 Requires=sys-subsystem-net-devices-eth0.device
