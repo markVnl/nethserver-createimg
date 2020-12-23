@@ -8,8 +8,7 @@ selinux --disabled
 firewall --disabled
 #On a raspbery Pi we are pretty sure network defaults to eth0
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,network,chronyd,chrony-wait,zram-swap,nethserver-system-init --disabled=NetworkManager-wait-online
-shutdown
+services --enabled=sshd,NetworkManager,NetworkManager-wait-online,zram-swap,nethserver-system-init 
 lang en_US.UTF-8
 
 # Repositories to use
@@ -65,51 +64,6 @@ echo "Write cmdline.txt..."
 cat > /boot/cmdline.txt << EOF
 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 EOF
-
-#
-## FIXME Kickstart network configuration and quirks of the Raspberry PI 4
-#
-# On a rpi we are pretty sure the network interface defaults to eth0
-echo "Fixing network quirks for Raspberry PI 4..."
-cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
-DEVICE=eth0
-BOOTPROTO=dhcp
-NM_CONTROLLED=no
-ONBOOT=yes
-PEERDNS=no
-DNS1=8.8.4.4
-DNS2=8.8.8.8
-PERSISTENT_DHCLIENT=y
-TYPE=Ethernet
-USERCTL=no
-EOF
-
-# Be sure we have a resolf.conf
-cat > /etc/resolve.conf << EOF
-nameserver 8.8.4.4
-nameserver 8.8.8.8
-search localhost
-EOF
-
-# Start the network.service after eth0 is ready 
-cat > /etc/systemd/system/network.service.d/wait-for-eth0.conf << EOF
-[Unit]
-After=sys-subsystem-net-devices-eth0.device
-Requires=sys-subsystem-net-devices-eth0.device
-EOF
-
-# wait for time before @nethserver-system-init.service
-mkdir /etc/systemd/system/nethserver-system-init.service.d
-cat > /etc/systemd/system/nethserver-system-init.service.d/wait-for-time.conf << EOF
-[Unit]
-After=chrony-wait.service
-Requires=chrony-wait.service
-EOF
-
-#
-## END FIXME Kickstart network configuration and quirks of the Raspberry PI 4
-#
-
 
 # On a PI we are pretty sure wireless network interface defaults to wlan0
 # Configure wpa_supplicant to control wlan0
