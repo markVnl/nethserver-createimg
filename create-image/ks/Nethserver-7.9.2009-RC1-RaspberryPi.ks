@@ -16,7 +16,11 @@ lang en_US.UTF-8
 repo --name="base"          --baseurl=http://mirror.centos.org/altarch/7/os/armhfp/      --cost=100
 repo --name="updates"       --baseurl=http://mirror.centos.org/altarch/7/updates/armhfp/ --cost=100
 repo --name="extras"        --baseurl=http://mirror.centos.org/altarch/7/extras/armhfp/  --cost=100
+
+# Local build kernel fixed zram-sawp for RPI4 8G model.
+repo --name="local-kernel"  --baseurl=http://local.repository.lan/nethserver/7/local/armhfp/  --cost=100
 repo --name="centos-kernel" --baseurl=http://mirror.centos.org/altarch/7/kernel/armhfp/kernel-rpi2/    --cost=100
+
 repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7.9.2009/base/armhfp/    --cost=100
 repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7.9.2009/updates/armhfp/ --cost=100
 # epel-pass1
