@@ -19,8 +19,8 @@ repo --name="updates" --baseurl=http://mirror.centos.org/altarch/7/updates/aarch
 repo --name="extras"  --baseurl=http://mirror.centos.org/altarch/7/extras/aarch64/  --cost=100
 repo --name="kernel"  --baseurl=http://mirror.centos.org/altarch/7/kernel/aarch64/kernel-generic/ --cost=100
 repo --name="epel"    --baseurl=https://download-ib01.fedoraproject.org/pub/epel/7/aarch64/       --cost=100
-repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7.8.2003/base/aarch64/    --cost=200
-repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7.8.2003/updates/aarch64/ --cost=200
+repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7.9.2009/base/aarch64/    --cost=200
+repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7.9.2009/updates/aarch64/ --cost=200
 # Copr repo for epel-7-aarch64_SBC-tools owned by markvnl,
 # this repo includes zram, boot-images and aarch64-img-extra-config
 repo --name="sbc-tools"   --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/epel-7-aarch64_SBC-tools/epel-7-$basearch/ --cost=300
@@ -74,19 +74,6 @@ echo "Setting up workarounds for aarch64 uboot-uefi..."
 
 #
 # The boot flag for 1st (fat32) efi-partion is set afterwards
-#
-
-# (re)configure GRUB2, does not work (yet), 
-# mounted the image on a loop device:
-#   mount ${loopdev}p3 ${mountpoint}
-#   mount ${loopdev}p2 ${mountpoint}/boot
-#   mount ${loopdev}p1 ${mountpoint}/boot/efi
-#   mount --bind /proc ${mountpoint}/proc
-#   mount --bind /dev  ${mountpoint}/dev
-#   mount --bind /sys  ${mountpoint}/sys
-#
-# and ran:
-#   chroot ${mountpoint} /bin/bash -c "/usr/sbin/grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg"
 #
 
 # time-out takes much longer as 1 sec
@@ -207,5 +194,17 @@ touch /etc/machine-id
 
 # Cleanup yum cache
 yum clean all
+
+%end
+
+#
+# Create grub config
+# 
+
+%post --nochroot
+/usr/bin/mount --bind /dev $INSTALL_ROOT/dev
+/usr/sbin/chroot $INSTALL_ROOT /bin/bash -c \
+"/usr/sbin/grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg"
+/usr/bin/umount $INSTALL_ROOT/dev
 
 %end
