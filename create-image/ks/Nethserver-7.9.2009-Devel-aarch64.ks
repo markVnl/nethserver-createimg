@@ -54,8 +54,8 @@ zram
 # Disk setup
 clearpart --initlabel --all 
 part /boot/efi --fstype=vfat --size=256  --label=efi    --asprimary --ondisk img
-part /boot     --fstype=ext4 --size=768  --label=boot   --asprimary --ondisk img
-part /         --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
+part /boot     --fstype=ext4 --size=512  --label=boot   --asprimary --ondisk img
+part /         --fstype=ext4 --size=3328 --label=rootfs --asprimary --ondisk img
 
 %pre
 #End of Pre script for partitions
