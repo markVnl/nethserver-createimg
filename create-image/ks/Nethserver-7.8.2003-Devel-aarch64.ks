@@ -7,8 +7,8 @@ rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
 selinux --disabled
 firewall --disabled
-network --device=link --activate --bootproto=dhcp --onboot=on --hostname=localhost.localdomain
-services --enabled=sshd,NetworkManager,chronyd,zram-swap,nethserver-system-init
+network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
+services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager,NetworkManager-wait-online
 skipx
 shutdown
 bootloader --location=none
@@ -17,18 +17,19 @@ bootloader --location=none
 repo --name="base"    --baseurl=http://mirror.centos.org/altarch/7/os/aarch64/      --cost=100
 repo --name="updates" --baseurl=http://mirror.centos.org/altarch/7/updates/aarch64/ --cost=100
 repo --name="extras"  --baseurl=http://mirror.centos.org/altarch/7/extras/aarch64/  --cost=100
-repo --name="epel"    --baseurl=http://mirror.1000mbps.com/epel/7/aarch64/          --cost=100
-repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7.7.1908/base/aarch64/    --cost=100
-repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7.7.1908/updates/aarch64/ --cost=100
+repo --name="kernel"  --baseurl=http://mirror.centos.org/altarch/7/kernel/aarch64/kernel-generic/ --cost=100
+repo --name="epel"    --baseurl=https://download-ib01.fedoraproject.org/pub/epel/7/aarch64/       --cost=100
+repo --name="nethserver-base"    --baseurl=http://packages.nethserver.org/nethserver/7.8.2003/base/aarch64/    --cost=200
+repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethserver/7.8.2003/updates/aarch64/ --cost=200
 # Copr repo for epel-7-aarch64_SBC-tools owned by markvnl,
-# this repo includes the kernel, uboot-images and aarch64-img-extra-config
-repo --name="sbc-tools"   --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/epel-7-aarch64_SBC-tools/epel-7-$basearch/ --cost=100
+# this repo includes zram, boot-images and aarch64-img-extra-config
+repo --name="sbc-tools"   --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/epel-7-aarch64_SBC-tools/epel-7-$basearch/ --cost=300
 
 # Package setup
 %packages
 @centos-minimal
 @nethserver-iso
-NetworkManager
+nethserver-arm-extra-config
 epel-release
 aarch64-img-extra-config
 bcm283x-firmware
@@ -118,8 +119,25 @@ enabled_metadata=1
 
 EOF
 
+# Keep the repository enabled after system-init
+cat > /etc/e-smith/templates/etc/nethserver/eorepo.conf/02 aarch64-sbc-tools << EOF
+{
+    #
+    # 02aarch64_sbc_tools 
+    # Copr repo for epel-7-aarch64_SBC-tools owned by markvnl,
+    # This repo includes zram, boot-images and aarch64-img-extra-config
+    # Added by ARM kickstart: do not remove it!
+    #
 
-## FIXME: end
+    push @repos, 'aarch64-sbc-tools';
+    
+    '';
+}
+EOF
+
+#
+## FIXME END: workarounds for aarch64 {uboot,efi}-boot
+#
 
 echo "copy Raspberry PI3s firmware und Das Uboot..."
 # firmware RPI 3(+)
@@ -132,18 +150,29 @@ cp -p start_cd.elf start_db.elf start.elf start_x.elf /boot/efi/.
 echo "leave directory"
 popd
 
+
 # Uboot RPI 3(+)
 cp -P /usr/share/uboot/rpi_3/u-boot.bin /boot/efi/rpi3-u-boot.bin
 
+# Setting correct yum variable to use mainline kernel repo
+echo "Setting up kernel variant..."
+echo "generic" > /etc/yum/vars/kvariant
+
+
 echo "Write README file..."
 cat >/root/README << EOF
-== Nethserver el7.7.1908 development AARCH64 image ==
+== Nethserver el7.8.2003 development AARCH64 image ==
 
-Note: this is a community effort not supported by centOS by any means
-            
+Note: This is a community effort not supported by centOS by any means
+      moreover at the time of this image creation epel is unmaintained!
+
       Please check /root/anaconda-ks.cfg on how this image came to life
 
-      nevertheless : have fun and debug!  
+      To shrink your initramfs and speed up boot, 
+      you may want to remove the dracut-config-generic package
+      And rebuild your intitramfs: dracut -v -f
+
+      Have fun and debug!  
 
 
 (as usual) If you want to automatically resize your / partition to use the full sd-card, 
