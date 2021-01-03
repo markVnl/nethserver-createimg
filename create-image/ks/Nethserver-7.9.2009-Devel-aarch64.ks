@@ -8,7 +8,7 @@ timezone --isUtc --nontp UTC
 selinux --disabled
 firewall --disabled
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
-services --enabled=sshd,network,chronyd,zram-swap,nethserver-system-init --disabled=NetworkManager,NetworkManager-wait-online
+services --enabled=sshd,NetworkManager,NetworkManager-wait-online,zram-swap,nethserver-system-init 
 skipx
 shutdown
 bootloader --location=none
