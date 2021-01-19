@@ -70,6 +70,15 @@ EOF
 echo "Configuring wpa_supplicant..."
 sed -i 's/INTERFACES=""/INTERFACES="-iwlan0"/' /etc/sysconfig/wpa_supplicant
 
+#
+## Network quirk of the Raspberry PI 4
+# Start the network.service after eth0 is ready 
+cat > /etc/systemd/system/network.service.d/wait-for-eth0.conf << EOF
+[Unit]
+After=sys-subsystem-net-devices-eth0.device
+Requires=sys-subsystem-net-devices-eth0.device
+EOF
+
 # cpu_governor.service
 echo "Applying cpu governor fix..."
 cat > /etc/systemd/system/multi-user.target.wants/cpu_governor.service << EOF
