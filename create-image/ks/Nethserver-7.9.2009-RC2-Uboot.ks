@@ -9,7 +9,7 @@ firewall --disabled
 network --device=eth0 --activate --bootproto=dhcp --onboot=on --noipv6 --hostname=localhost.localdomain
 services --enabled=sshd,NetworkManager,NetworkManager-wait-online,zram-swap,nethserver-system-init 
 shutdown
-bootloader --location=mbr
+bootloader --location=mbr  --extlinux
 lang en_US.UTF-8
 
 # Repositories to use
@@ -29,7 +29,7 @@ part /boot --fstype=ext4 --size=768  --label=boot   --asprimary --ondisk img
 part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
-%packages
+%packages  --nocore
 @centos-minimal
 @nethserver-iso
 nethserver-arm-epel
