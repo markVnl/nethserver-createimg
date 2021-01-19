@@ -26,7 +26,7 @@ repo --name="nethserver-updates" --baseurl=http://packages.nethserver.org/nethse
 repo --name="sbc-tools"   --baseurl=https://copr-be.cloud.fedoraproject.org/results/markvnl/epel-7-aarch64_SBC-tools/epel-7-$basearch/ --cost=300
 
 # Package setup
-%packages
+%packages --nocore
 @centos-minimal
 @nethserver-iso
 nethserver-arm-extra-config

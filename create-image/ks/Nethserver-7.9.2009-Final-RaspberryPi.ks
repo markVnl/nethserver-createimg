@@ -31,7 +31,7 @@ part /boot --fstype=vfat --size=768  --label=boot   --asprimary --ondisk img
 part /     --fstype=ext4 --size=2560 --label=rootfs --asprimary --ondisk img
 
 # Package setup
-%packages
+%packages --nocore
 @centos-minimal
 @nethserver-iso
 nethserver-arm-epel
