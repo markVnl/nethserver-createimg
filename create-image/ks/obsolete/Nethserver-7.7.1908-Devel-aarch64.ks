@@ -7,7 +7,7 @@ rootpw Nethesis,1234
 timezone --isUtc --nontp UTC
 selinux --disabled
 firewall --disabled
-network --bootproto=dhcp --device=link --activate --onboot=on
+network --device=link --activate --bootproto=dhcp --onboot=on --hostname=localhost.localdomain
 services --enabled=sshd,NetworkManager,chronyd,zram-swap,nethserver-system-init
 skipx
 shutdown
@@ -28,6 +28,7 @@ repo --name="sbc-tools"   --baseurl=https://copr-be.cloud.fedoraproject.org/resu
 %packages
 @centos-minimal
 @nethserver-iso
+NetworkManager
 epel-release
 aarch64-img-extra-config
 bcm283x-firmware
@@ -158,6 +159,11 @@ echo "ledtrig-heartbeat" > /etc/modules-load.d/sbc.conf
 
 echo "Disabeling and Masking kdump.service..."
 systemctl mask kdump.service
+
+
+#Nethserver-arm enable init on first boot
+echo "Enabling first-boot..."
+touch /var/spool/first-boot
 
 
 echo "Setting up Raspbery PI 3(+) wlan firmware..."
